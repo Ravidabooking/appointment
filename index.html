@@ -262,11 +262,17 @@
         </div>
         <div class="field">
           <label>Durations offered</label>
-          <div style="display:flex;gap:16px;">
+          <div style="display:flex;gap:16px;flex-wrap:wrap;">
             <label style="display:flex;align-items:center;gap:6px;font-weight:600;text-transform:none;"><input type="checkbox" id="newDur30" checked style="width:18px;height:18px;"> 30 min</label>
             <label style="display:flex;align-items:center;gap:6px;font-weight:600;text-transform:none;"><input type="checkbox" id="newDur60" style="width:18px;height:18px;"> 60 min</label>
             <label style="display:flex;align-items:center;gap:6px;font-weight:600;text-transform:none;"><input type="checkbox" id="newDur90" style="width:18px;height:18px;"> 90 min</label>
+            <label style="display:flex;align-items:center;gap:6px;font-weight:600;text-transform:none;"><input type="checkbox" id="newDurNoTime" style="width:18px;height:18px;"> No time</label>
           </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:10px;">
+            <input type="number" min="1" id="newDurCustomInput" placeholder="custom minutes" style="width:140px;padding:8px 10px;border:1.5px solid var(--line);border-radius:6px;">
+            <button type="button" class="btn-ghost-dark" id="newDurCustomAddBtn">+ Add duration</button>
+          </div>
+          <div id="newDurCustomChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
         </div>
         <div class="field"><label>Price (optional)</label><input id="newServicePrice" placeholder="e.g. 500 EGP"></div>
         <button class="btn-ghost-dark" id="addServiceBtn">+ Add service</button>
@@ -358,6 +364,7 @@ function to12h(t){
   const period = h>=12?'PM':'AM'; const hh = h%12===0?12:h%12;
   return `${hh}:${String(m).padStart(2,'0')} ${period}`;
 }
+function fmtDuration(d){ return d === 0 ? 'No time' : d + ' min'; }
 function fmtDateHuman(dateStr){
   const d = new Date(dateStr+'T00:00:00');
   return d.toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long'});
@@ -405,7 +412,7 @@ function renderServicesOverview(){
       <div class="services-grid">
         ${list.map(s => `<div class="service-card" style="cursor:default;">
           <div class="sname">${escapeHtml(s.name)}</div>
-          <div class="smeta">${(s.durations&&s.durations.length?s.durations:[30,60,90]).map(d=>d+' min').join(' · ')}${s.price?' · '+escapeHtml(s.price):''}</div>
+          <div class="smeta">${(s.durations&&s.durations.length?s.durations:[30,60,90]).map(fmtDuration).join(' · ')}${s.price?' · '+escapeHtml(s.price):''}</div>
         </div>`).join('')}
       </div>
     </div>`;
@@ -443,7 +450,7 @@ function renderServiceGridForCategory(){
   el.innerHTML = filtered.map(s => `
     <div class="service-card ${s.id===selectedServiceId?'selected':''}" data-service="${s.id}">
       <div class="sname">${escapeHtml(s.name)}</div>
-      <div class="smeta">${(s.durations&&s.durations.length?s.durations:[30,60,90]).map(d=>d+' min').join(' · ')}${s.price?' · '+escapeHtml(s.price):''}</div>
+      <div class="smeta">${(s.durations&&s.durations.length?s.durations:[30,60,90]).map(fmtDuration).join(' · ')}${s.price?' · '+escapeHtml(s.price):''}</div>
     </div>
   `).join('');
   el.querySelectorAll('.service-card').forEach(card => {
@@ -465,7 +472,7 @@ function renderDurationGrid(){
   const el = document.getElementById('durationGrid');
   const svc = services.find(s => s.id === selectedServiceId);
   const durations = (svc && svc.durations && svc.durations.length) ? svc.durations : [30,60,90];
-  el.innerHTML = durations.map(d => `<button class="slot-btn ${d===selectedDuration?'selected':''}" data-dur="${d}">${d} min</button>`).join('');
+  el.innerHTML = durations.map(d => `<button class="slot-btn ${d===selectedDuration?'selected':''}" data-dur="${d}">${fmtDuration(d)}</button>`).join('');
   el.querySelectorAll('[data-dur]').forEach(btn => {
     btn.onclick = () => {
       selectedDuration = Number(btn.dataset.dur);
@@ -511,7 +518,7 @@ async function computeAvailableSlots(dateStr, durationMinutes){
 async function onDateOrServiceChange(){
   const dateStr = document.getElementById('bookDate').value;
   const svc = services.find(s => s.id === selectedServiceId);
-  if(!dateStr || !svc || !selectedDuration){ return; }
+  if(!dateStr || !svc || selectedDuration === null){ return; }
   document.getElementById('slotsField').style.display = 'block';
   document.getElementById('detailsFields').style.display = 'none';
   document.getElementById('slotsArea').innerHTML = '<div class="loading"><div class="spinner"></div>Checking availability…</div>';
@@ -547,7 +554,7 @@ document.getElementById('submitBookingBtn').onclick = async () => {
   const date = document.getElementById('bookDate').value;
   const svc = services.find(s => s.id === selectedServiceId);
   const msg = document.getElementById('bookingMsg');
-  if(!name || !phone || !svc || !selectedSlot || !selectedDuration){ msg.textContent = 'Please fill in your name and phone number.'; msg.className='msg err'; return; }
+  if(!name || !phone || !svc || !selectedSlot || selectedDuration === null){ msg.textContent = 'Please fill in your name and phone number.'; msg.className='msg err'; return; }
   const btn = document.getElementById('submitBookingBtn');
   btn.disabled = true; btn.textContent = 'Booking…';
   try{
@@ -568,7 +575,7 @@ document.getElementById('submitBookingBtn').onclick = async () => {
     document.getElementById('bookingFlow').style.display = 'none';
     document.getElementById('bookingConfirm').style.display = 'block';
     document.getElementById('confirmText').textContent =
-      `${name}, your ${svc.name} (${selectedDuration} min) appointment is booked for ${fmtDateHuman(date)} at ${to12h(selectedSlot)}. We'll contact you at ${phone} to confirm.`;
+      `${name}, your ${svc.name} (${fmtDuration(selectedDuration)}) appointment is booked for ${fmtDateHuman(date)} at ${to12h(selectedSlot)}. We'll contact you at ${phone} to confirm.`;
   }catch(err){
     msg.textContent = err.message; msg.className = 'msg err';
   }finally{
@@ -723,6 +730,8 @@ function renderServicesAdminList(all){
   if(all.length === 0){ el.innerHTML = '<div class="empty-state">No services yet.</div>'; return; }
   el.innerHTML = all.map(s => {
     const durations = s.durations || [];
+    const standard = [30,60,90];
+    const customs = durations.filter(d => d !== 0 && !standard.includes(d));
     return `
     <div class="row-item" style="flex-direction:column;align-items:stretch;">
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
@@ -736,8 +745,14 @@ function renderServicesAdminList(all){
         <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;"><input type="checkbox" ${durations.includes(30)?'checked':''} onchange="toggleServiceDuration('${s.id}',30,this.checked)"> 30 min</label>
         <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;"><input type="checkbox" ${durations.includes(60)?'checked':''} onchange="toggleServiceDuration('${s.id}',60,this.checked)"> 60 min</label>
         <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;"><input type="checkbox" ${durations.includes(90)?'checked':''} onchange="toggleServiceDuration('${s.id}',90,this.checked)"> 90 min</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;"><input type="checkbox" ${durations.includes(0)?'checked':''} onchange="toggleServiceDuration('${s.id}',0,this.checked)"> No time</label>
         <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;margin-left:auto;"><input type="checkbox" ${s.active!==false?'checked':''} onchange="updateService('${s.id}','active',this.checked)"> Active</label>
         <button class="btn-danger" onclick="deleteService('${s.id}')">Remove</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;">
+        <input type="number" min="1" id="customDurInput-${s.id}" placeholder="custom minutes" style="width:130px;padding:6px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:12.5px;">
+        <button class="btn-ghost-dark" onclick="addCustomDurationToService('${s.id}')" style="padding:6px 10px;font-size:12px;">+ Add duration</button>
+        ${customs.map(d => `<span style="background:var(--mint-100);color:var(--teal-900);padding:5px 10px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;" onclick="toggleServiceDuration('${s.id}',${d},false)" title="Click to remove">${d} min ✕</span>`).join('')}
       </div>
     </div>
   `;
@@ -754,10 +769,34 @@ function toggleServiceDuration(id, minutes, checked){
   durations.sort((a,b) => a-b);
   db.collection('bkServices').doc(id).update({ durations }).catch(err => alert('Could not update: ' + err.message));
 }
+function addCustomDurationToService(id){
+  const input = document.getElementById('customDurInput-' + id);
+  const val = Number(input.value);
+  if(!val || val < 1) return;
+  toggleServiceDuration(id, val, true);
+  input.value = '';
+}
 function deleteService(id){
   if(!confirm('Remove this service? Existing bookings for it are kept.')) return;
   db.collection('bkServices').doc(id).delete();
 }
+let newServiceCustomDurations = [];
+function renderNewDurCustomChips(){
+  const el = document.getElementById('newDurCustomChips');
+  el.innerHTML = newServiceCustomDurations.map((d,i) => `<span style="background:var(--mint-100);color:var(--teal-900);padding:5px 10px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;" onclick="removeNewDurChip(${i})" title="Click to remove">${d} min ✕</span>`).join('');
+}
+function removeNewDurChip(i){
+  newServiceCustomDurations.splice(i,1);
+  renderNewDurCustomChips();
+}
+document.getElementById('newDurCustomAddBtn').onclick = () => {
+  const input = document.getElementById('newDurCustomInput');
+  const val = Number(input.value);
+  if(!val || val < 1) return;
+  if(!newServiceCustomDurations.includes(val)) newServiceCustomDurations.push(val);
+  input.value = '';
+  renderNewDurCustomChips();
+};
 document.getElementById('addServiceBtn').onclick = async () => {
   const name = document.getElementById('newServiceName').value.trim();
   const category = document.getElementById('newServiceCategory').value;
@@ -766,13 +805,19 @@ document.getElementById('addServiceBtn').onclick = async () => {
   if(document.getElementById('newDur30').checked) durations.push(30);
   if(document.getElementById('newDur60').checked) durations.push(60);
   if(document.getElementById('newDur90').checked) durations.push(90);
+  if(document.getElementById('newDurNoTime').checked) durations.push(0);
+  durations.push(...newServiceCustomDurations);
   const msg = document.getElementById('servicesMsg');
   if(!name){ msg.textContent = 'Enter a service name.'; msg.className = 'msg err'; return; }
   if(durations.length === 0){ msg.textContent = 'Pick at least one duration.'; msg.className = 'msg err'; return; }
   try{
+    durations.sort((a,b) => a-b);
     await db.collection('bkServices').add({ name, category, durations, price, active: true });
     document.getElementById('newServiceName').value = '';
     document.getElementById('newServicePrice').value = '';
+    document.getElementById('newDurNoTime').checked = false;
+    newServiceCustomDurations = [];
+    renderNewDurCustomChips();
     msg.textContent = 'Added.'; msg.className = 'msg ok';
   }catch(err){ msg.textContent = err.message; msg.className = 'msg err'; }
 };
