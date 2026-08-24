@@ -692,8 +692,14 @@ async function onDateOrServiceChange(){
   document.getElementById('detailsFields').style.display = 'none';
   document.getElementById('slotsArea').innerHTML = '<div class="loading"><div class="spinner"></div>Checking availability…</div>';
   selectedSlot = null;
-  const result = await computeAvailableSlots(dateStr, selectedDuration, selectedCategory);
   const el = document.getElementById('slotsArea');
+  let result;
+  try{
+    result = await computeAvailableSlots(dateStr, selectedDuration, selectedCategory);
+  }catch(err){
+    el.innerHTML = `<div class="empty-state">Couldn't check availability (${escapeHtml(err.message)}). Please try again in a moment.</div>`;
+    return;
+  }
   if(result.closed){
     el.innerHTML = `<div class="empty-state">${escapeHtml(result.reason)}</div>`;
     return;
