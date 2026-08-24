@@ -196,6 +196,12 @@
   </section>
 </main>
 
+<div id="lightboxOverlay" style="display:none;position:fixed;inset:0;background:rgba(10,25,25,.92);z-index:200;align-items:center;justify-content:center;padding:24px;flex-direction:column;" onclick="closeLightbox()">
+  <img id="lightboxImg" src="" style="max-width:100%;max-height:80vh;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+  <div id="lightboxCaption" style="color:#fff;margin-top:14px;font-size:14px;text-align:center;"></div>
+  <button onclick="closeLightbox()" style="position:absolute;top:20px;right:24px;background:rgba(255,255,255,.15);color:#fff;border:none;width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer;">✕</button>
+</div>
+
 <footer>
   <div id="footerClinicName">RaVida Clinic</div>
   <div style="margin-top:6px;">
@@ -270,20 +276,34 @@
           <select id="newServiceCategory"></select>
         </div>
         <div class="field">
-          <label>Durations offered</label>
-          <div style="display:flex;gap:16px;flex-wrap:wrap;">
-            <label style="display:flex;align-items:center;gap:6px;font-weight:600;text-transform:none;"><input type="checkbox" id="newDur30" checked style="width:18px;height:18px;"> 30 min</label>
-            <label style="display:flex;align-items:center;gap:6px;font-weight:600;text-transform:none;"><input type="checkbox" id="newDur60" style="width:18px;height:18px;"> 60 min</label>
-            <label style="display:flex;align-items:center;gap:6px;font-weight:600;text-transform:none;"><input type="checkbox" id="newDur90" style="width:18px;height:18px;"> 90 min</label>
-            <label style="display:flex;align-items:center;gap:6px;font-weight:600;text-transform:none;"><input type="checkbox" id="newDurNoTime" style="width:18px;height:18px;"> No time</label>
+          <label>Durations offered (with an optional price for each)</label>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <label style="display:flex;align-items:center;gap:6px;font-weight:600;text-transform:none;width:100px;"><input type="checkbox" id="newDur30" checked style="width:18px;height:18px;"> 30 min</label>
+              <input id="newDur30Price" placeholder="price optional" style="width:130px;padding:7px 9px;border:1.5px solid var(--line);border-radius:6px;">
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <label style="display:flex;align-items:center;gap:6px;font-weight:600;text-transform:none;width:100px;"><input type="checkbox" id="newDur60" style="width:18px;height:18px;"> 60 min</label>
+              <input id="newDur60Price" placeholder="price optional" style="width:130px;padding:7px 9px;border:1.5px solid var(--line);border-radius:6px;">
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <label style="display:flex;align-items:center;gap:6px;font-weight:600;text-transform:none;width:100px;"><input type="checkbox" id="newDur90" style="width:18px;height:18px;"> 90 min</label>
+              <input id="newDur90Price" placeholder="price optional" style="width:130px;padding:7px 9px;border:1.5px solid var(--line);border-radius:6px;">
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <label style="display:flex;align-items:center;gap:6px;font-weight:600;text-transform:none;width:100px;"><input type="checkbox" id="newDurNoTime" style="width:18px;height:18px;"> No time</label>
+              <input id="newDurNoTimePrice" placeholder="price optional" style="width:130px;padding:7px 9px;border:1.5px solid var(--line);border-radius:6px;">
+            </div>
           </div>
           <div style="display:flex;gap:8px;align-items:center;margin-top:10px;">
-            <input type="number" min="1" id="newDurCustomInput" placeholder="custom minutes" style="width:140px;padding:8px 10px;border:1.5px solid var(--line);border-radius:6px;">
+            <input type="number" min="1" id="newDurCustomInput" placeholder="custom minutes" style="width:130px;padding:8px 10px;border:1.5px solid var(--line);border-radius:6px;">
+            <input id="newDurCustomPriceInput" placeholder="price optional" style="width:120px;padding:8px 10px;border:1.5px solid var(--line);border-radius:6px;">
             <button type="button" class="btn-ghost-dark" id="newDurCustomAddBtn">+ Add duration</button>
           </div>
           <div id="newDurCustomChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"></div>
         </div>
-        <div class="field"><label>Price (optional)</label><input id="newServicePrice" placeholder="e.g. 500 EGP"></div>
+        <div class="field"><label>Fallback price (used only for durations left blank above)</label><input id="newServicePrice" placeholder="e.g. 500 EGP"></div>
+        <div class="field"><label>Description (optional — shown to clients under this service)</label><textarea id="newServiceDescription" rows="2" placeholder="Any extra info for clients" style="width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;font-size:14.5px;background:var(--mint-50);font-family:inherit;resize:vertical;"></textarea></div>
         <button class="btn-ghost-dark" id="addServiceBtn">+ Add service</button>
         <div class="msg" id="servicesMsg"></div>
       </div>
@@ -316,6 +336,11 @@
           <label>Logo (leave blank to use the default logo)</label>
           <input id="settingsLogoUrl" placeholder="https://... OR just a filename like logo2.png">
           <div style="font-size:12px;color:var(--ink-soft);margin-top:6px;">Two ways to set this: paste a full image URL (e.g. from Imgur), <b>or</b> upload the image file to this same GitHub repo/folder as index.html, then just type its filename here (e.g. <code>logo2.png</code>) — no URL needed.</div>
+        </div>
+        <div class="field">
+          <label>Hero background (behind the logo — leave blank for the default teal color)</label>
+          <input id="settingsHeroBg" placeholder="https://... OR just a filename like hero-bg.jpg">
+          <div style="font-size:12px;color:var(--ink-soft);margin-top:6px;">Same rule as the logo — full URL or just a filename uploaded to the repo. A dark overlay is added automatically so your logo and text stay readable on top of it.</div>
         </div>
         <button class="btn-ghost-dark" id="saveSettingsBtn">Save</button>
         <div class="msg" id="settingsMsg"></div>
@@ -389,6 +414,11 @@ function to12h(t){
   return `${hh}:${String(m).padStart(2,'0')} ${period}`;
 }
 function fmtDuration(d){ return d === 0 ? 'No time' : d + ' min'; }
+function fmtDurationWithPrice(svc, d){
+  const perPrice = svc.durationPrices && svc.durationPrices[String(d)];
+  const price = perPrice || svc.price;
+  return price ? `${fmtDuration(d)} (${price})` : fmtDuration(d);
+}
 function fmtDateHuman(dateStr){
   const d = new Date(dateStr+'T00:00:00');
   return d.toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long'});
@@ -414,8 +444,18 @@ db.collection('bkSettings').doc('main').onSnapshot(doc => {
   document.getElementById('settingsClinicName').value = name;
   document.getElementById('settingsTagline').value = tagline;
   document.getElementById('settingsLogoUrl').value = data.logoUrl || '';
+  document.getElementById('settingsHeroBg').value = data.heroBackgroundUrl || '';
   document.getElementById('settingsWaNumber').value = data.whatsappNumber || '';
   document.getElementById('settingsWaApiKey').value = data.whatsappApiKey || '5924321';
+
+  const heroEl = document.querySelector('.hero');
+  if(data.heroBackgroundUrl){
+    heroEl.style.backgroundImage = `linear-gradient(180deg, rgba(13,59,65,.78), rgba(17,75,95,.85)), url(${JSON.stringify(data.heroBackgroundUrl)})`;
+    heroEl.style.backgroundSize = 'cover';
+    heroEl.style.backgroundPosition = 'center';
+  } else {
+    heroEl.style.backgroundImage = '';
+  }
 });
 
 /* ---------------- CATEGORIES ---------------- */
@@ -499,23 +539,57 @@ db.collection('bkServices').onSnapshot(snap => {
   if(currentAdminUser) renderServicesAdminList(allServicesForAdmin);
 });
 
+let overviewCollapsed = {};
 function renderServicesOverview(){
   const el = document.getElementById('servicesGrid');
   if(services.length === 0){ el.innerHTML = '<div class="empty-state">Services coming soon.</div>'; return; }
   const groups = CATEGORIES.map(c => {
     const list = services.filter(s => s.category === c.key);
     if(list.length === 0) return '';
-    return `<div style="margin-top:14px;">
-      <div style="font-weight:700;color:var(--teal-900);margin-bottom:8px;">${escapeHtml(c.label)}</div>
-      <div class="services-grid">
-        ${list.map(s => `<div class="service-card" style="cursor:default;">
+    if(!(c.key in overviewCollapsed)) overviewCollapsed[c.key] = true;
+    const collapsed = overviewCollapsed[c.key];
+    return `<div style="margin-top:10px;border-top:1px solid var(--line);padding-top:10px;">
+      <button class="category-toggle" data-catkey="${c.key}" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:none;border:none;padding:6px 2px;cursor:pointer;text-align:left;">
+        <span style="font-weight:700;color:var(--teal-900);font-size:15px;">${escapeHtml(c.label)}</span>
+        <span style="color:var(--teal-700);font-size:16px;">${collapsed ? '▸' : '▾'}</span>
+      </button>
+      <div class="services-grid" style="${collapsed ? 'display:none;' : ''}margin-top:8px;">
+        ${list.map(s => `<div class="service-card" data-ovcat="${c.key}" data-ovservice="${s.id}">
           <div class="sname">${escapeHtml(s.name)}</div>
-          <div class="smeta">${(s.durations&&s.durations.length?s.durations:[30,60,90]).map(fmtDuration).join(' · ')}${s.price?' · '+escapeHtml(s.price):''}</div>
+          <div class="smeta">${(s.durations&&s.durations.length?s.durations:[30,60,90]).map(d=>escapeHtml(fmtDurationWithPrice(s,d))).join(' · ')}</div>
+          ${s.description ? `<div class="smeta" style="margin-top:4px;">${escapeHtml(s.description)}</div>` : ''}
         </div>`).join('')}
       </div>
     </div>`;
   }).join('');
   el.innerHTML = groups || '<div class="empty-state">Services coming soon.</div>';
+
+  el.querySelectorAll('.category-toggle').forEach(btn => {
+    btn.onclick = () => {
+      const key = btn.dataset.catkey;
+      overviewCollapsed[key] = !overviewCollapsed[key];
+      renderServicesOverview();
+    };
+  });
+  el.querySelectorAll('[data-ovservice]').forEach(card => {
+    card.onclick = () => selectServiceForBooking(card.dataset.ovcat, card.dataset.ovservice);
+  });
+}
+
+function selectServiceForBooking(categoryKey, serviceId){
+  selectedCategory = categoryKey;
+  selectedServiceId = serviceId;
+  selectedDuration = null;
+  selectedSlot = null;
+  renderCategoryGrid();
+  renderServiceGridForCategory();
+  renderDurationGrid();
+  document.getElementById('serviceField').style.display = 'block';
+  document.getElementById('durationField').style.display = 'block';
+  document.getElementById('dateField').style.display = 'none';
+  document.getElementById('slotsField').style.display = 'none';
+  document.getElementById('detailsFields').style.display = 'none';
+  document.getElementById('booking').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function renderCategoryGrid(){
@@ -548,29 +622,21 @@ function renderServiceGridForCategory(){
   el.innerHTML = filtered.map(s => `
     <div class="service-card ${s.id===selectedServiceId?'selected':''}" data-service="${s.id}">
       <div class="sname">${escapeHtml(s.name)}</div>
-      <div class="smeta">${(s.durations&&s.durations.length?s.durations:[30,60,90]).map(fmtDuration).join(' · ')}${s.price?' · '+escapeHtml(s.price):''}</div>
+      <div class="smeta">${(s.durations&&s.durations.length?s.durations:[30,60,90]).map(d=>escapeHtml(fmtDurationWithPrice(s,d))).join(' · ')}</div>
+      ${s.description ? `<div class="smeta" style="margin-top:4px;">${escapeHtml(s.description)}</div>` : ''}
     </div>
   `).join('');
   el.querySelectorAll('.service-card').forEach(card => {
-    card.onclick = () => {
-      selectedServiceId = card.dataset.service;
-      selectedDuration = null; selectedSlot = null;
-      renderServiceGridForCategory();
-      renderDurationGrid();
-      document.getElementById('durationField').style.display = 'block';
-      document.getElementById('dateField').style.display = 'none';
-      document.getElementById('slotsField').style.display = 'none';
-      document.getElementById('detailsFields').style.display = 'none';
-      document.getElementById('durationField').scrollIntoView({behavior:'smooth', block:'center'});
-    };
+    card.onclick = () => selectServiceForBooking(selectedCategory, card.dataset.service);
   });
 }
 
 function renderDurationGrid(){
   const el = document.getElementById('durationGrid');
   const svc = services.find(s => s.id === selectedServiceId);
-  const durations = (svc && svc.durations && svc.durations.length) ? svc.durations : [30,60,90];
-  el.innerHTML = durations.map(d => `<button class="slot-btn ${d===selectedDuration?'selected':''}" data-dur="${d}">${fmtDuration(d)}</button>`).join('');
+  if(!svc){ el.innerHTML = ''; return; }
+  const durations = (svc.durations && svc.durations.length) ? svc.durations : [30,60,90];
+  el.innerHTML = durations.map(d => `<button class="slot-btn ${d===selectedDuration?'selected':''}" data-dur="${d}">${escapeHtml(fmtDurationWithPrice(svc,d))}</button>`).join('');
   el.querySelectorAll('[data-dur]').forEach(btn => {
     btn.onclick = () => {
       selectedDuration = Number(btn.dataset.dur);
@@ -681,7 +747,7 @@ document.getElementById('submitBookingBtn').onclick = async () => {
     document.getElementById('bookingFlow').style.display = 'none';
     document.getElementById('bookingConfirm').style.display = 'block';
     document.getElementById('confirmText').textContent =
-      `${name}, your ${svc.name} (${fmtDuration(selectedDuration)}) appointment is booked for ${fmtDateHuman(date)} at ${to12h(selectedSlot)}. We'll contact you at ${phone} to confirm.`;
+      `${name}, your ${svc.name} (${fmtDurationWithPrice(svc, selectedDuration)}) appointment is booked for ${fmtDateHuman(date)} at ${to12h(selectedSlot)}. We'll contact you at ${phone} to confirm.`;
   }catch(err){
     msg.textContent = err.message; msg.className = 'msg err';
   }finally{
@@ -709,9 +775,18 @@ document.getElementById('bookAgainBtn').onclick = () => {
 db.collection('bkPhotos').onSnapshot(snap => {
   const photos = snap.docs.map(d => ({ id:d.id, ...d.data() }));
   const el = document.getElementById('galleryGrid');
-  el.innerHTML = photos.length ? photos.map(p => `<img src="${escapeHtml(p.url)}" alt="${escapeHtml(p.caption||'')}" loading="lazy">`).join('') : '<div class="empty-state" style="grid-column:1/-1;">Photos coming soon.</div>';
+  el.innerHTML = photos.length ? photos.map(p => `<img src="${escapeHtml(p.url)}" alt="${escapeHtml(p.caption||'')}" loading="lazy" style="cursor:pointer;" onclick="openLightbox('${escapeHtml(p.url)}','${escapeHtml((p.caption||'').replace(/'/g,"\\'"))}')">`).join('') : '<div class="empty-state" style="grid-column:1/-1;">Photos coming soon.</div>';
   if(currentAdminUser) renderPhotosAdminList(photos);
 });
+
+function openLightbox(url, caption){
+  document.getElementById('lightboxImg').src = url;
+  document.getElementById('lightboxCaption').textContent = caption || '';
+  document.getElementById('lightboxOverlay').style.display = 'flex';
+}
+function closeLightbox(){
+  document.getElementById('lightboxOverlay').style.display = 'none';
+}
 
 /* =========================================================================
    ADMIN
@@ -834,6 +909,12 @@ function renderServicesAdminList(all){
     const durations = s.durations || [];
     const standard = [30,60,90];
     const customs = durations.filter(d => d !== 0 && !standard.includes(d));
+    const prices = s.durationPrices || {};
+    const durRow = (d, label) => `
+      <div style="display:flex;align-items:center;gap:5px;">
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;"><input type="checkbox" ${durations.includes(d)?'checked':''} onchange="toggleServiceDuration('${s.id}',${d},this.checked)"> ${label}</label>
+        <input value="${escapeHtml(prices[String(d)]||'')}" onchange="updateDurationPrice('${s.id}','${d}',this.value)" placeholder="price" style="width:70px;padding:5px 6px;border:1.5px solid var(--line);border-radius:6px;font-size:12px;">
+      </div>`;
     return `
     <div class="row-item" style="flex-direction:column;align-items:stretch;">
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
@@ -841,20 +922,25 @@ function renderServicesAdminList(all){
         <select onchange="updateService('${s.id}','category',this.value)" style="flex:1;min-width:150px;padding:7px 9px;border:1.5px solid var(--line);border-radius:6px;">
           ${CATEGORIES.map(c => `<option value="${c.key}" ${s.category===c.key?'selected':''}>${escapeHtml(c.label)}</option>`).join('')}
         </select>
-        <input value="${escapeHtml(s.price||'')}" onchange="updateService('${s.id}','price',this.value)" placeholder="price optional" style="flex:1;min-width:100px;padding:7px 9px;border:1.5px solid var(--line);border-radius:6px;">
+        <input value="${escapeHtml(s.price||'')}" onchange="updateService('${s.id}','price',this.value)" placeholder="fallback price" title="Used only if a duration below has no price of its own" style="flex:1;min-width:110px;padding:7px 9px;border:1.5px solid var(--line);border-radius:6px;">
       </div>
       <div style="display:flex;gap:16px;align-items:center;margin-top:8px;flex-wrap:wrap;">
-        <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;"><input type="checkbox" ${durations.includes(30)?'checked':''} onchange="toggleServiceDuration('${s.id}',30,this.checked)"> 30 min</label>
-        <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;"><input type="checkbox" ${durations.includes(60)?'checked':''} onchange="toggleServiceDuration('${s.id}',60,this.checked)"> 60 min</label>
-        <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;"><input type="checkbox" ${durations.includes(90)?'checked':''} onchange="toggleServiceDuration('${s.id}',90,this.checked)"> 90 min</label>
-        <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;"><input type="checkbox" ${durations.includes(0)?'checked':''} onchange="toggleServiceDuration('${s.id}',0,this.checked)"> No time</label>
+        ${durRow(30,'30 min')}
+        ${durRow(60,'60 min')}
+        ${durRow(90,'90 min')}
+        ${durRow(0,'No time')}
         <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;margin-left:auto;"><input type="checkbox" ${s.active!==false?'checked':''} onchange="updateService('${s.id}','active',this.checked)"> Active</label>
         <button class="btn-danger" onclick="deleteService('${s.id}')">Remove</button>
       </div>
       <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;">
-        <input type="number" min="1" id="customDurInput-${s.id}" placeholder="custom minutes" style="width:130px;padding:6px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:12.5px;">
+        <input type="number" min="1" id="customDurInput-${s.id}" placeholder="custom minutes" style="width:120px;padding:6px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:12.5px;">
+        <input id="customDurPriceInput-${s.id}" placeholder="price (optional)" style="width:100px;padding:6px 8px;border:1.5px solid var(--line);border-radius:6px;font-size:12.5px;">
         <button class="btn-ghost-dark" onclick="addCustomDurationToService('${s.id}')" style="padding:6px 10px;font-size:12px;">+ Add duration</button>
-        ${customs.map(d => `<span style="background:var(--mint-100);color:var(--teal-900);padding:5px 10px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;" onclick="toggleServiceDuration('${s.id}',${d},false)" title="Click to remove">${d} min ✕</span>`).join('')}
+        ${customs.map(d => `<span style="background:var(--mint-100);color:var(--teal-900);padding:5px 10px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;" onclick="toggleServiceDuration('${s.id}',${d},false)" title="Click to remove">${escapeHtml(fmtDurationWithPrice(s,d))} ✕</span>`).join('')}
+      </div>
+      <div class="field" style="margin-top:8px;margin-bottom:0;">
+        <label style="font-size:11px;">Description (shown to clients under this service)</label>
+        <textarea rows="2" onchange="updateService('${s.id}','description',this.value)" placeholder="Optional extra info for clients" style="width:100%;padding:8px 10px;border:1.5px solid var(--line);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;">${escapeHtml(s.description||'')}</textarea>
       </div>
     </div>
   `;
@@ -871,54 +957,74 @@ function toggleServiceDuration(id, minutes, checked){
   durations.sort((a,b) => a-b);
   db.collection('bkServices').doc(id).update({ durations }).catch(err => alert('Could not update: ' + err.message));
 }
+function updateDurationPrice(id, durKey, value){
+  const svc = allServicesForAdmin.find(s => s.id === id);
+  const prices = Object.assign({}, (svc && svc.durationPrices) || {});
+  if(value.trim()) prices[durKey] = value.trim(); else delete prices[durKey];
+  db.collection('bkServices').doc(id).update({ durationPrices: prices }).catch(err => alert('Could not update: ' + err.message));
+}
 function addCustomDurationToService(id){
   const input = document.getElementById('customDurInput-' + id);
+  const priceInput = document.getElementById('customDurPriceInput-' + id);
   const val = Number(input.value);
   if(!val || val < 1) return;
   toggleServiceDuration(id, val, true);
+  if(priceInput.value.trim()) updateDurationPrice(id, String(val), priceInput.value.trim());
   input.value = '';
+  priceInput.value = '';
 }
 function deleteService(id){
   if(!confirm('Remove this service? Existing bookings for it are kept.')) return;
   db.collection('bkServices').doc(id).delete();
 }
 let newServiceCustomDurations = [];
+let newServiceDurationPrices = {};
 function renderNewDurCustomChips(){
   const el = document.getElementById('newDurCustomChips');
-  el.innerHTML = newServiceCustomDurations.map((d,i) => `<span style="background:var(--mint-100);color:var(--teal-900);padding:5px 10px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;" onclick="removeNewDurChip(${i})" title="Click to remove">${d} min ✕</span>`).join('');
+  el.innerHTML = newServiceCustomDurations.map((d,i) => `<span style="background:var(--mint-100);color:var(--teal-900);padding:5px 10px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;" onclick="removeNewDurChip(${i})" title="Click to remove">${d} min${newServiceDurationPrices[d]?' ('+escapeHtml(newServiceDurationPrices[d])+')':''} ✕</span>`).join('');
 }
 function removeNewDurChip(i){
+  const d = newServiceCustomDurations[i];
+  delete newServiceDurationPrices[d];
   newServiceCustomDurations.splice(i,1);
   renderNewDurCustomChips();
 }
 document.getElementById('newDurCustomAddBtn').onclick = () => {
   const input = document.getElementById('newDurCustomInput');
+  const priceInput = document.getElementById('newDurCustomPriceInput');
   const val = Number(input.value);
   if(!val || val < 1) return;
   if(!newServiceCustomDurations.includes(val)) newServiceCustomDurations.push(val);
-  input.value = '';
+  if(priceInput.value.trim()) newServiceDurationPrices[val] = priceInput.value.trim();
+  input.value = ''; priceInput.value = '';
   renderNewDurCustomChips();
 };
 document.getElementById('addServiceBtn').onclick = async () => {
   const name = document.getElementById('newServiceName').value.trim();
   const category = document.getElementById('newServiceCategory').value;
   const price = document.getElementById('newServicePrice').value.trim();
+  const description = document.getElementById('newServiceDescription').value.trim();
   const durations = [];
-  if(document.getElementById('newDur30').checked) durations.push(30);
-  if(document.getElementById('newDur60').checked) durations.push(60);
-  if(document.getElementById('newDur90').checked) durations.push(90);
-  if(document.getElementById('newDurNoTime').checked) durations.push(0);
+  const durationPrices = {};
+  if(document.getElementById('newDur30').checked){ durations.push(30); if(document.getElementById('newDur30Price').value.trim()) durationPrices['30'] = document.getElementById('newDur30Price').value.trim(); }
+  if(document.getElementById('newDur60').checked){ durations.push(60); if(document.getElementById('newDur60Price').value.trim()) durationPrices['60'] = document.getElementById('newDur60Price').value.trim(); }
+  if(document.getElementById('newDur90').checked){ durations.push(90); if(document.getElementById('newDur90Price').value.trim()) durationPrices['90'] = document.getElementById('newDur90Price').value.trim(); }
+  if(document.getElementById('newDurNoTime').checked){ durations.push(0); if(document.getElementById('newDurNoTimePrice').value.trim()) durationPrices['0'] = document.getElementById('newDurNoTimePrice').value.trim(); }
   durations.push(...newServiceCustomDurations);
+  newServiceCustomDurations.forEach(d => { if(newServiceDurationPrices[d]) durationPrices[String(d)] = newServiceDurationPrices[d]; });
   const msg = document.getElementById('servicesMsg');
   if(!name){ msg.textContent = 'Enter a service name.'; msg.className = 'msg err'; return; }
   if(durations.length === 0){ msg.textContent = 'Pick at least one duration.'; msg.className = 'msg err'; return; }
   try{
     durations.sort((a,b) => a-b);
-    await db.collection('bkServices').add({ name, category, durations, price, active: true });
+    await db.collection('bkServices').add({ name, category, durations, durationPrices, price, description, active: true });
     document.getElementById('newServiceName').value = '';
     document.getElementById('newServicePrice').value = '';
+    document.getElementById('newServiceDescription').value = '';
+    ['newDur30Price','newDur60Price','newDur90Price','newDurNoTimePrice'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('newDurNoTime').checked = false;
     newServiceCustomDurations = [];
+    newServiceDurationPrices = {};
     renderNewDurCustomChips();
     msg.textContent = 'Added.'; msg.className = 'msg ok';
   }catch(err){ msg.textContent = err.message; msg.className = 'msg err'; }
@@ -1000,9 +1106,10 @@ document.getElementById('saveSettingsBtn').onclick = async () => {
   const clinicName = document.getElementById('settingsClinicName').value.trim();
   const tagline = document.getElementById('settingsTagline').value.trim();
   const logoUrl = document.getElementById('settingsLogoUrl').value.trim();
+  const heroBackgroundUrl = document.getElementById('settingsHeroBg').value.trim();
   const msg = document.getElementById('settingsMsg');
   try{
-    await db.collection('bkSettings').doc('main').set({ clinicName, tagline, logoUrl }, { merge: true });
+    await db.collection('bkSettings').doc('main').set({ clinicName, tagline, logoUrl, heroBackgroundUrl }, { merge: true });
     msg.textContent = 'Saved.'; msg.className = 'msg ok';
   }catch(err){ msg.textContent = err.message; msg.className = 'msg err'; }
 };
